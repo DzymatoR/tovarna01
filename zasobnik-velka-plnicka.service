@@ -1,0 +1,21 @@
+[Unit]
+Description=Temperature Monitoring Service - Zasobnik Velka Plnicka
+After=network.target docker.service
+Requires=docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=dzymator
+WorkingDirectory=/home/dzymator/tovarna01
+ExecStart=/usr/bin/python3 /home/dzymator/tovarna01/Devices/zasobnik_velka_plnicka.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables (pokud bys je potřeboval)
+# Environment="PYTHONUNBUFFERED=1"
+
+[Install]
+WantedBy=multi-user.target

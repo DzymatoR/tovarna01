@@ -24,10 +24,26 @@ while True:
         # Extrakce 4 teplotních kanálů z pole 'ch'
         channels = data.get("ch", [])
 
-        temp1 = channels[0].get("value") if len(channels) > 0 and channels[0].get("name") == "Temperature" else None
-        temp2 = channels[1].get("value") if len(channels) > 1 and channels[1].get("name") == "Temperature" else None
-        temp3 = channels[2].get("value") if len(channels) > 2 and channels[2].get("name") == "Temperature" else None
-        temp4 = channels[3].get("value") if len(channels) > 3 and channels[3].get("name") == "Temperature" else None
+        temp1 = (
+            channels[0].get("value")
+            if len(channels) > 0 and channels[0].get("name") == "Temperature"
+            else None
+        )
+        temp2 = (
+            channels[1].get("value")
+            if len(channels) > 1 and channels[1].get("name") == "Temperature"
+            else None
+        )
+        temp3 = (
+            channels[2].get("value")
+            if len(channels) > 2 and channels[2].get("name") == "Temperature"
+            else None
+        )
+        temp4 = (
+            channels[3].get("value")
+            if len(channels) > 3 and channels[3].get("name") == "Temperature"
+            else None
+        )
 
         print(f"Teplota 1: {temp1}")
         print(f"Teplota 2: {temp2}")
@@ -37,19 +53,27 @@ while True:
 
         # Zápis do InfluxDB
         if temp1 is not None:
-            point1 = Point("temperature").tag("channel", "1").field("value", float(temp1))
+            point1 = (
+                Point("temperature").tag("channel", "1").field("value", float(temp1))
+            )
             write_api.write(bucket=INFLUX_BUCKET, record=point1)
-        
+
         if temp2 is not None:
-            point2 = Point("temperature").tag("channel", "2").field("value", float(temp2))
+            point2 = (
+                Point("temperature").tag("channel", "2").field("value", float(temp2))
+            )
             write_api.write(bucket=INFLUX_BUCKET, record=point2)
-        
+
         if temp3 is not None:
-            point3 = Point("temperature").tag("channel", "3").field("value", float(temp3))
+            point3 = (
+                Point("temperature").tag("channel", "3").field("value", float(temp3))
+            )
             write_api.write(bucket=INFLUX_BUCKET, record=point3)
-        
+
         if temp4 is not None:
-            point4 = Point("temperature").tag("channel", "4").field("value", float(temp4))
+            point4 = (
+                Point("temperature").tag("channel", "4").field("value", float(temp4))
+            )
             write_api.write(bucket=INFLUX_BUCKET, record=point4)
 
         print("✓ Data zapsána do InfluxDB")
