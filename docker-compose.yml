@@ -30,6 +30,8 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_INSTALL_PLUGINS=
+      - GF_SERVER_DOMAIN=192.168.16.51
+      - GF_SERVER_ROOT_URL=http://192.168.16.51:3000
     depends_on:
       - influxdb
 
