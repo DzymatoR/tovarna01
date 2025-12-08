@@ -1,0 +1,18 @@
+[Unit]
+Description=MQTT to InfluxDB Bridge
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+User=dzymator
+WorkingDirectory=/home/dzymator/tovarna01
+ExecStartPre=/bin/sleep 10
+ExecStart=/home/dzymator/tovarna01/.venv/bin/python /home/dzymator/tovarna01/mqtt_to_influxdb.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
