@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/.platformio/packages/framework-arduinoespressif32/cores/esp32",
+                "~/.platformio/packages/framework-arduinoespressif32/libraries/**",
+                "~/.platformio/packages/framework-arduinoespressif32/tools/sdk/esp32/include/**",
+                "~/.platformio/packages/toolchain-xtensa-esp32/xtensa-esp32-elf/include/**",
+                "~/.platformio/lib/**"
+            ],
+            "defines": [
+                "ARDUINO=10812",
+                "ARDUINO_ARCH_ESP32",
+                "ESP32",
+                "PLATFORMIO=60111"
+            ],
+            "compilerPath": "~/.platformio/packages/toolchain-xtensa-esp32/bin/xtensa-esp32-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
