@@ -33,6 +33,18 @@ services:
     depends_on:
       - influxdb
 
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
   temperature-monitor:
     build: .
     container_name: temperature-monitor
@@ -45,3 +57,5 @@ volumes:
   influxdb-data:
   influxdb-config:
   grafana-data:
+  mosquitto-data:
+  mosquitto-log:
