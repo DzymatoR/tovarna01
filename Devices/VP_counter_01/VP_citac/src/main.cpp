@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include <InfluxDbClient.h>
-#include <InfluxDbCloud.h>
+#include <PubSubClient.h>
 #include "config.h"
 
 // Senzor konfigurace
@@ -11,15 +10,23 @@ bool lastState = LOW;
 unsigned long lastDebounceTime = 0;
 const unsigned long debounceDelay = 200; // 200ms minimum mezi kusy
 
-// Časovač pro odesílání dat
-unsigned long lastSendTime = 0;
-const unsigned long sendInterval = 60000; // 60 sekund = 1 minuta
+// MQTT client
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
 
-// InfluxDB client
-InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN);
-
-// Data point
-Point sensor("production_counter");
+void reconnectMQTT() {
+  while (!mqttClient.connected()) {
+    Serial.print("Připojuji se k MQTT brokeru...");
+    if (mqttClient.connect(DEVICE_NAME)) {
+      Serial.println(" Připojeno!");
+    } else {
+      Serial.print(" Selhalo, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" Zkouším znovu za 5 sekund");
+      delay(5000);
+    }
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -37,19 +44,20 @@ void setup() {
   Serial.print("IP adresa: ");
   Serial.println(WiFi.localIP());
 
-  // Nastavení tagu pro identifikaci zařízení
-  sensor.addTag("device", DEVICE_NAME);
+  // Nastavení MQTT brokeru
+  mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
 
-  // Test spojení s InfluxDB
-  if (client.validateConnection()) {
-    Serial.println("Připojeno k InfluxDB!");
-  } else {
-    Serial.print("InfluxDB spojení selhalo: ");
-    Serial.println(client.getLastErrorMessage());
-  }
+  // Připojení k MQTT
+  reconnectMQTT();
 }
 
 void loop() {
+  // Kontrola MQTT připojení
+  if (!mqttClient.connected()) {
+    reconnectMQTT();
+  }
+  mqttClient.loop();
+
   bool currentState = digitalRead(SENSOR_PIN);
 
   // Detekce nábežné hrany (přechod z LOW na HIGH)
@@ -57,41 +65,23 @@ void loop() {
     // Kontrola, zda uplynul debounce delay od poslední detekce
     if ((millis() - lastDebounceTime) > debounceDelay) {
       counter++;
-      Serial.print("Počet kusů: ");
+      Serial.print("Detekován kus #");
       Serial.println(counter);
+
+      // Okamžité odeslání na MQTT
+      char message[50];
+      snprintf(message, 50, "{\"count\":%lu,\"timestamp\":%lu}", counter, millis());
+
+      if (mqttClient.publish(MQTT_TOPIC, message)) {
+        Serial.println("-> MQTT: Odesláno");
+      } else {
+        Serial.println("-> MQTT: Chyba při odesílání");
+      }
+
       lastDebounceTime = millis();
     }
   }
 
   lastState = currentState;
-
-  // Kontrola, zda uplynula minuta - odeslání dat do InfluxDB
-  if (millis() - lastSendTime >= sendInterval) {
-    Serial.println("=================================");
-    Serial.print("Odesílám data do InfluxDB: ");
-    Serial.print(counter);
-    Serial.println(" kusů za poslední minutu");
-
-    // Vyčištění předchozích polí
-    sensor.clearFields();
-
-    // Přidání hodnoty počítadla
-    sensor.addField("count", counter);
-
-    // Odeslání dat do InfluxDB
-    if (client.writePoint(sensor)) {
-      Serial.println("✓ Data úspěšně odeslána");
-    } else {
-      Serial.print("✗ Chyba při odesílání: ");
-      Serial.println(client.getLastErrorMessage());
-    }
-
-    // Reset počítadla
-    counter = 0;
-    lastSendTime = millis();
-    Serial.println("Počítadlo resetováno");
-    Serial.println("=================================");
-  }
-
   delay(10);
 }
