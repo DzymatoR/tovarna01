@@ -1,0 +1,200 @@
+# Pokročilé příklady konfigurace MQTT to InfluxDB Bridge
+
+topics:
+  # ============================================================================
+  # ČÍTAČE (COUNTER STRATEGIE)
+  # ============================================================================
+
+  # Základní čítač - každá zpráva = 1 kus
+  "tovarna/citac/kusy":
+    strategy: "counter"
+    interval: 60  # každou minutu odešle a vynuluje
+    measurement: "production_counter"
+    tags:
+      location: "hala1"
+      machine: "linka_A"
+    increment_value: 1
+    field_name: "pieces_count"
+    reset_after_send: true
+
+  # Čítač chyb - delší interval
+  "tovarna/citac/chyby":
+    strategy: "counter"
+    interval: 300  # každých 5 minut
+    measurement: "error_counter"
+    tags:
+      location: "hala1"
+      severity: "warning"
+    increment_value: 1
+    field_name: "error_count"
+    reset_after_send: true
+
+  # Čítač palet - může přijímat i větší čísla
+  "tovarna/citac/palety":
+    strategy: "counter"
+    interval: 600  # každých 10 minut
+    measurement: "pallet_counter"
+    tags:
+      warehouse: "sklad_A"
+    increment_value: 1  # výchozí, ale zpráva může obsahovat jiné číslo
+    field_name: "pallet_count"
+    reset_after_send: true
+
+  # Čítač provozních hodin stroje
+  "tovarna/provoz/stroj01":
+    strategy: "counter"
+    interval: 3600  # každou hodinu
+    measurement: "machine_runtime"
+    tags:
+      machine_id: "stroj_01"
+      type: "cnc"
+    increment_value: 1  # každá zpráva = 1 minuta provozu
+    field_name: "runtime_minutes"
+    reset_after_send: false  # nepočítat od nuly, pokračovat
+
+  # ============================================================================
+  # PRŮMĚROVÁNÍ (AVERAGE STRATEGIE)
+  # ============================================================================
+
+  # Průměrná teplota každé 2 minuty
+  "tovarna/teplota/hala1":
+    strategy: "average"
+    interval: 120
+    measurement: "temperature_avg"
+    tags:
+      location: "hala1"
+      sensor_type: "DHT22"
+    field_name: "avg_temperature"
+    unit: "celsius"
+    reset_after_send: true
+
+  # Průměrná vlhkost
+  "tovarna/vlhkost/hala1":
+    strategy: "average"
+    interval: 300  # každých 5 minut
+    measurement: "humidity_avg"
+    tags:
+      location: "hala1"
+    field_name: "avg_humidity"
+    unit: "percent"
+    reset_after_send: true
+
+  # Průměrná spotřeba energie
+  "tovarna/energie/spotrebic01":
+    strategy: "average"
+    interval: 600  # každých 10 minut
+    measurement: "power_consumption_avg"
+    tags:
+      device: "spotrebic_01"
+      type: "compressor"
+    field_name: "avg_power"
+    unit: "kW"
+    reset_after_send: true
+
+  # ============================================================================
+  # OKAMŽITÁ DATA (IMMEDIATE STRATEGIE)
+  # ============================================================================
+
+  # Kritická měření - okamžitě
+  "tovarna/alarm/kriticky":
+    strategy: "immediate"
+    measurement: "critical_alarms"
+    tags:
+      priority: "high"
+    field_name: "alarm_value"
+
+  # Poloha/pozice
+  "tovarna/pozice/robot01":
+    strategy: "immediate"
+    measurement: "robot_position"
+    tags:
+      robot_id: "robot_01"
+    field_name: "position"
+    auto_tags: true
+
+  # Tlak v systému - důležitá hodnota
+  "tovarna/tlak/kompresor":
+    strategy: "immediate"
+    measurement: "pressure"
+    tags:
+      device: "kompresor_01"
+    field_name: "value"
+    unit: "bar"
+
+  # Stav stroje (on/off)
+  "tovarna/stav/stroj01":
+    strategy: "immediate"
+    measurement: "machine_state"
+    tags:
+      machine: "stroj_01"
+    field_name: "state"
+
+  # ============================================================================
+  # WILDCARD TOPICS
+  # ============================================================================
+
+  # Všechny senzory - okamžitě s auto tagy
+  "sensors/#":
+    strategy: "immediate"
+    measurement: "sensor_readings"
+    auto_tags: true
+    field_name: "value"
+
+  # Všechny čítače ve výrobě
+  "vyroba/citac/#":
+    strategy: "counter"
+    interval: 60
+    measurement: "production_counters"
+    auto_tags: true
+    field_name: "count"
+    increment_value: 1
+    reset_after_send: true
+
+  # Monitoring různých zařízení
+  "monitoring/#":
+    strategy: "average"
+    interval: 300
+    measurement: "monitoring_data"
+    auto_tags: true
+    field_name: "avg_value"
+    reset_after_send: true
+
+# ============================================================================
+# VÝCHOZÍ KONFIGURACE
+# ============================================================================
+default:
+  strategy: "immediate"
+  measurement: "mqtt_data"
+  auto_tags: true
+  field_name: "value"
+
+
+# ============================================================================
+# POZNÁMKY K POUŽITÍ
+# ============================================================================
+#
+# 1. COUNTER - Sčítání hodnot
+#    - Ideální pro: počítání kusů, událostí, chyb, palet
+#    - increment_value: co přičíst pokud zpráva neobsahuje číslo
+#    - reset_after_send: true = vynulovat po odeslání
+#    - Příklad zprávy: "1", "5", "" (prázdná = increment_value)
+#
+# 2. AVERAGE - Průměrování
+#    - Ideální pro: teplota, vlhkost, tlak, spotřeba
+#    - Sbírá hodnoty a počítá průměr
+#    - reset_after_send: true = smazat hodnoty po odeslání
+#    - Příklad zprávy: "23.5", "45.2", "18.9"
+#
+# 3. IMMEDIATE - Okamžité odeslání
+#    - Ideální pro: alarmy, stavy, kritická měření
+#    - Každá zpráva se okamžitě zapíše
+#    - Příklad zprávy: "42", "online", "alert"
+#
+# Interval je v sekundách:
+#   60 = 1 minuta
+#   300 = 5 minut
+#   600 = 10 minut
+#   3600 = 1 hodina
+#
+# Tags slouží pro filtrování v Grafana/InfluxDB
+# auto_tags: true automaticky vytvoří tagy z topic path
