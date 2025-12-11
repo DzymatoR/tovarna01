@@ -23,7 +23,7 @@ INFLUX_ORG = "Demo_InfluxDB"
 INFLUX_BUCKET = "Demo_bucket"
 
 # MQTT konfigurace
-MQTT_BROKER = "localhost"
+MQTT_BROKER = "192.168.16.51"
 MQTT_PORT = 1883
 
 # Cesta ke konfiguračnímu souboru
@@ -202,7 +202,8 @@ def on_message(client, userdata, msg):
 
         # Získání hodnoty
         if isinstance(data, dict):
-            value = data.get("value", config.get("increment_value", 1))
+            # Zkus různé klíče: value, count, nebo increment_value z konfigurace
+            value = data.get("value") or data.get("count") or config.get("increment_value", 1)
         else:
             value = data
 
@@ -220,12 +221,13 @@ def on_message(client, userdata, msg):
                 print(f"✓ Data okamžitě zapsána do InfluxDB")
 
         elif strategy == "counter":
-            # Přičtení k čítači
+            # Každá zpráva = +1 kus (ignorujeme obsah zprávy)
             with data_lock:
+                increment_value = config.get("increment_value", 1)
                 aggregated_data[topic]["count"] += 1
-                aggregated_data[topic]["sum"] += value
+                aggregated_data[topic]["sum"] += increment_value
                 aggregated_data[topic]["config"] = config
-                print(f"✓ Přičteno k čítači: {aggregated_data[topic]['sum']} (počet: {aggregated_data[topic]['count']})")
+                print(f"✓ Přičteno k čítači: +{increment_value} (celkem: {aggregated_data[topic]['sum']}, zpráv: {aggregated_data[topic]['count']})")
 
         elif strategy == "average":
             # Přidání hodnoty pro průměrování

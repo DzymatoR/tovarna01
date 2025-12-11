@@ -2,17 +2,15 @@
 # Každý topic může mít vlastní strategii zpracování
 
 topics:
-  # Příklad: Čítač kusů - sčítá příchozí zprávy a pravidelně odesílá součet
-  "tovarna/citac/kusy":
-    strategy: "counter"
+  # VP_counter_01 - Čítač kusů
+  "tovarna/vp_counter_01/pieces":
+    strategy: "counter"  # sčítá hodnoty count ze zpráv
     interval: 60  # interval v sekundách pro odeslání do InfluxDB
-    measurement: "citac_kusu"
+    measurement: "vp_counter"
     tags:
-      location: "hala1"
-      machine: "citac_01"
-    # Každá zpráva přičte 1 (nebo hodnotu ze zprávy)
-    increment_value: 1  # výchozí hodnota, pokud zpráva neobsahuje číslo
-    field_name: "count"  # název fieldu v InfluxDB
+      device: "VP_counter_01"
+      location: "tovarna"
+    field_name: "pieces"  # název fieldu v InfluxDB
     reset_after_send: true  # vynulovat po odeslání
 
   # Příklad: Jiný čítač s jiným intervalem
