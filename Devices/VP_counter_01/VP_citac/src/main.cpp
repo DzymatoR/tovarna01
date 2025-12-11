@@ -69,8 +69,8 @@ void loop() {
       Serial.println(counter);
 
       // Okamžité odeslání na MQTT
-      char message[50];
-      snprintf(message, 50, "{\"count\":%lu,\"timestamp\":%lu}", counter, millis());
+      char message[100];
+      snprintf(message, 100, "{\"detected\":1,\"timestamp\":%lu,\"topic\":\"%s\"}", millis(), MQTT_TOPIC);
 
       if (mqttClient.publish(MQTT_TOPIC, message)) {
         Serial.println("-> MQTT: Odesláno");

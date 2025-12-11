@@ -202,8 +202,8 @@ def on_message(client, userdata, msg):
 
         # Získání hodnoty
         if isinstance(data, dict):
-            # Zkus různé klíče: value, count, nebo increment_value z konfigurace
-            value = data.get("value") or data.get("count") or config.get("increment_value", 1)
+            # Zkus různé klíče: detected, value, count, nebo increment_value z konfigurace
+            value = data.get("detected") or data.get("value") or data.get("count") or config.get("increment_value", 1)
         else:
             value = data
 
