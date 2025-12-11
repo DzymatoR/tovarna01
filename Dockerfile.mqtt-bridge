@@ -1,0 +1,13 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Kopírování requirements a instalace závislostí
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Kopírování MQTT bridge scriptu
+COPY mqtt_to_influxdb.py .
+
+# Spuštění MQTT bridge s unbufferovaným výstupem
+CMD ["python", "-u", "mqtt_to_influxdb.py"]
