@@ -9,6 +9,7 @@ import json
 import time
 import threading
 import yaml
+import os
 from datetime import datetime
 from collections import defaultdict
 from typing import Dict, Any, List
@@ -17,14 +18,14 @@ from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 # InfluxDB konfigurace
-INFLUX_URL = "http://localhost:8086"
-INFLUX_TOKEN = "eVyYk0wMFink-OHYXoCABFBo1spJdJe8EmIAlw5nIaOlPCgdsK76KyqO4v22QJxUhC_ojeDj6Cp7e82opwSWNQ=="
-INFLUX_ORG = "Demo_InfluxDB"
-INFLUX_BUCKET = "Demo_bucket"
+INFLUX_URL = os.getenv("INFLUX_URL", "http://influxdb:8086")
+INFLUX_TOKEN = os.getenv("INFLUX_TOKEN", "eVyYk0wMFink-OHYXoCABFBo1spJdJe8EmIAlw5nIaOlPCgdsK76KyqO4v22QJxUhC_ojeDj6Cp7e82opwSWNQ==")
+INFLUX_ORG = os.getenv("INFLUX_ORG", "Demo_InfluxDB")
+INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "Demo_bucket")
 
 # MQTT konfigurace
-MQTT_BROKER = "192.168.16.51"
-MQTT_PORT = 1883
+MQTT_BROKER = os.getenv("MQTT_BROKER", "mosquitto")
+MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 
 # Cesta ke konfiguračnímu souboru
 CONFIG_FILE = "topic_config.yaml"
